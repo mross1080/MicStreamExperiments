@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<h1>WELCOME TO MY SCRIPT PROCESSOR NODE EXAMPLE</h1>
+<h3>If your microphone is able to connect you will see raw audio context data printed to the screen</h3>
+
+
+                  <div id="mylog">! CONSOLE LOGS !</div>
+<script>
+  
+
+
+var baseLogFunction = console.log;
+console.log = function() {
+    baseLogFunction.apply(console, arguments);
+
+    var args = Array.prototype.slice.call(arguments);
+    for (var i = 0; i < args.length; i++) {
+        var node = createLogNode(args[i]);
+        document.querySelector("#mylog").appendChild(node);
+    }
+
+}
+
+function createLogNode(message) {
+    var node = document.createElement("div");
+    var textNode = document.createTextNode(message);
+    node.appendChild(textNode);
+    return node;
+}
+
+window.onerror = function(message, url, linenumber) {
+    console.log("JavaScript error: " + message + " on line " +
+        linenumber + " for " + url);
+}
+
+console.log("Printing All Devices!")
+// navigator.mediaDevices.enumerateDevices()
+// .then(function(devices) {
+//   devices.forEach(function(device) {
+//      let d = JSON.stringify(device);
+//      console.log(d)
+//     console.log(device.kind + ": " + device.label +
+//                 " id = " + device.deviceId);
+//   });
+// })
+// .catch(function(err) {
+//   console.log(err.name + ": " + err.message);
+// });
+  
+const handleSuccess = function(stream) {
+
+  navigator.mediaDevices.enumerateDevices().then(function(devices) {
+        devices.forEach(function(device) {
+           let d = JSON.stringify(device);
+     console.log(d)
+            // console.log(device.label)
+        })
+    })
+  console.log("Got User Media microphone ")
+      const context = new(window.AudioContext || window.webkitAudioContext)();
+
+   // const context = new AudioContext();
+    const source = context.createMediaStreamSource(stream);
+    const processor = context.createScriptProcessor(1024, 1, 1);
+    let count = 0;
+    source.connect(processor);
+    processor.connect(context.destination);
+    console.log("Connected source waiting for incoming audio ")
+    processor.onaudioprocess = function(e) {
+      // Do something with the data, e.g. convert it to WAV
+      console.log("Count : " + count + " Length : " + e.inputBuffer.length + " Duration : " + e.inputBuffer.duration);
+
+      count+=1
+    };
+  };
+  console.log("Setting up audio context")
+
+
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      .then(handleSuccess);
+
+
+
+
+</script>
+
+</body>
+</html>
